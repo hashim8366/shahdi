@@ -1,0 +1,330 @@
+/* ============================================================
+   نظام ادارة الشواهد الذكي – Custom Styles
+   ============================================================ */
+
+/* ── Base ── */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+    background-color: #f8f9fb;
+    color: #1a1a2e;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main, .container {
+    flex: 1;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* ── Utilities ── */
+.py-6 {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+}
+
+.section-title {
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 50%;
+    transform: translateX(50%);
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 2px;
+}
+
+/* ── Navbar ── */
+.navbar-brand span {
+    font-size: 1.1rem;
+    letter-spacing: -0.5px;
+}
+
+/* ── Hero Section ── */
+.hero-section {
+    min-height: 85vh;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%);
+}
+
+.hero-icon {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-12px); }
+}
+
+/* ── Feature Cards ── */
+.feature-card {
+    border-radius: 1rem !important;
+    transition: transform 0.25s, box-shadow 0.25s;
+}
+
+.feature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(59, 130, 246, 0.15) !important;
+}
+
+.feature-icon {
+    width: 72px;
+    height: 72px;
+    background: #f0f7ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+/* ── Step circles ── */
+.step-circle {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* ── Auth cards ── */
+.auth-card {
+    border-radius: 1.25rem !important;
+}
+
+.auth-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #eff6ff, #e0e7ff);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+/* ── Dashboard banner ── */
+.dashboard-banner {
+    border-radius: 1rem !important;
+    background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+    border-left: 4px solid #3b82f6 !important;
+}
+
+.create-btn {
+    border-radius: 0.75rem;
+    font-size: 1rem;
+}
+
+/* ── Stat cards ── */
+.stat-card {
+    border-radius: 1rem !important;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    background: #eff6ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+/* ── Table ── */
+.table th {
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f0f7ff;
+}
+
+/* ── Upload area ── */
+.upload-area {
+    border: 2px dashed #93c5fd;
+    border-radius: 1rem;
+    background: #f8faff;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.upload-area:hover,
+.upload-area.dragover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+/* ── Required field label ── */
+.required-label::after {
+    content: ' *';
+    color: #ef4444;
+}
+
+/* ── Program view page (public gallery) ── */
+.program-view {
+    border-radius: 1.5rem !important;
+}
+
+.prog-header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 60%, #8b5cf6 100%);
+    min-height: 200px;
+}
+
+.prog-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+        45deg,
+        rgba(255,255,255,0.03) 0,
+        rgba(255,255,255,0.03) 1px,
+        transparent 0,
+        transparent 50%
+    );
+    background-size: 20px 20px;
+}
+
+.detail-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    background: #eff6ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.detail-item {
+    padding: 1rem;
+    background: #f8f9fb;
+    border-radius: 0.75rem;
+}
+
+/* ── Media gallery ── */
+.gallery-item {
+    border-radius: 0.75rem !important;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.gallery-item:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18) !important;
+}
+
+.gallery-thumb {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+/* ── File icon box (manage page) ── */
+.file-icon-box {
+    width: 52px;
+    height: 52px;
+    background: #f3f4f6;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Share URL input ── */
+.share-url {
+    font-size: 0.85rem;
+    background: #f8f9fb;
+    direction: ltr;
+}
+
+/* ── Footer ── */
+.footer {
+    margin-top: auto;
+}
+
+/* ── Responsive tweaks ── */
+@media (max-width: 576px) {
+    .hero-section {
+        min-height: 70vh;
+    }
+    .auth-card .card-body {
+        padding: 2rem 1.5rem !important;
+    }
+    .prog-header {
+        min-height: 160px;
+    }
+    .gallery-thumb {
+        height: 110px;
+    }
+}
+
+/* ── Animations ── */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.card, .hero-section h1, .hero-section p, .hero-section .btn {
+    animation: fadeInUp 0.5s ease both;
+}
+
