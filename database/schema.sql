@@ -6,54 +6,95 @@
 -- ── Enable UUID extension ─────────────────────────────────
 create extension if not exists "pgcrypto";
 
--- ── certificates table ────────────────────────────────────
-create table if not exists public.certificates (
-    id               uuid        primary key default gen_random_uuid(),
-    user_id          uuid        not null references auth.users(id) on delete cascade,
-    program_name     text        not null,
-    description      text,
-    holder_name      text        not null,
-    organization     text        not null,
-    certificate_url  text,                       -- Supabase Storage public URL
-    slug             varchar(32) not null unique, -- e.g. bin2hex(random_bytes(8))
-    created_at       timestamptz default now()
+-- ── programs table ────────────────────────────────────────
+-- Represents a program or event to which evidence files belong.
+create table if not exists public.programs (
+    id           uuid        primary key default gen_random_uuid(),
+    user_id      uuid        not null references auth.users(id) on delete cascade,
+    program_name text        not null,
+    description  text,
+    organization text        not null,
+    slug         varchar(32) not null unique, -- shared-link token
+    created_at   timestamptz default now()
+);
+
+-- ── evidence_files table ──────────────────────────────────
+-- Stores the individual media/document files attached to a program.
+create table if not exists public.evidence_files (
+    id          uuid        primary key default gen_random_uuid(),
+    program_id  uuid        not null references public.programs(id) on delete cascade,
+    file_name   text        not null,       -- original filename shown to the user
+    file_url    text        not null,       -- Supabase Storage public URL
+    file_type   text        not null,       -- 'image' | 'video' | 'pdf' | 'other'
+    file_size   bigint,                     -- bytes
+    created_at  timestamptz default now()
 );
 
 -- ── Indexes ───────────────────────────────────────────────
-create index if not exists idx_certificates_user_id  on public.certificates(user_id);
-create index if not exists idx_certificates_slug      on public.certificates(slug);
-create index if not exists idx_certificates_created   on public.certificates(created_at desc);
+create index if not exists idx_programs_user_id  on public.programs(user_id);
+create index if not exists idx_programs_slug      on public.programs(slug);
+create index if not exists idx_programs_created   on public.programs(created_at desc);
+create index if not exists idx_evidence_program   on public.evidence_files(program_id);
 
--- ── Row Level Security ────────────────────────────────────
-alter table public.certificates enable row level security;
+-- ── Row Level Security – programs ─────────────────────────
+alter table public.programs enable row level security;
 
--- Owners can read their own certificates
-create policy "Users can view own certificates"
-    on public.certificates for select
+create policy "Owners can view own programs"
+    on public.programs for select
     using (auth.uid() = user_id);
 
--- Public can read certificates by slug (for shared links)
-create policy "Public can view certificates by slug"
-    on public.certificates for select
-    using (true);   -- RLS select is open; the slug is the access control mechanism
+create policy "Public can view programs by slug"
+    on public.programs for select
+    using (true);
 
--- Owners can insert
-create policy "Users can insert own certificates"
-    on public.certificates for insert
+create policy "Owners can insert programs"
+    on public.programs for insert
     with check (auth.uid() = user_id);
 
--- Owners can delete their own certificates
-create policy "Users can delete own certificates"
-    on public.certificates for delete
+create policy "Owners can delete own programs"
+    on public.programs for delete
     using (auth.uid() = user_id);
 
+-- ── Row Level Security – evidence_files ───────────────────
+alter table public.evidence_files enable row level security;
+
+create policy "Evidence visible to program owner"
+    on public.evidence_files for select
+    using (
+        exists (
+            select 1 from public.programs p
+            where p.id = program_id and p.user_id = auth.uid()
+        )
+    );
+
+create policy "Public can view evidence files"
+    on public.evidence_files for select
+    using (true);
+
+create policy "Owners can insert evidence files"
+    on public.evidence_files for insert
+    with check (
+        exists (
+            select 1 from public.programs p
+            where p.id = program_id and p.user_id = auth.uid()
+        )
+    );
+
+create policy "Owners can delete evidence files"
+    on public.evidence_files for delete
+    using (
+        exists (
+            select 1 from public.programs p
+            where p.id = program_id and p.user_id = auth.uid()
+        )
+    );
+
 -- ── Supabase Storage bucket ───────────────────────────────
--- Run in the Supabase Dashboard → Storage → New Bucket
--- Name: certificates  (public: true)
--- Or execute via the Management API.
+-- Dashboard → Storage → New Bucket
+-- Name: evidence   (public: true)
 
 -- ============================================================
--- Optional: user_profiles view (uses auth.users metadata)
+-- user_profiles view
 -- ============================================================
 create or replace view public.user_profiles as
     select
@@ -62,3 +103,4 @@ create or replace view public.user_profiles as
         raw_user_meta_data->>'full_name' as full_name,
         created_at
     from auth.users;
+

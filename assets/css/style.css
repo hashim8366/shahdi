@@ -203,17 +203,17 @@ a {
     color: #ef4444;
 }
 
-/* ── Certificate view page ── */
-.certificate-view {
+/* ── Program view page (public gallery) ── */
+.program-view {
     border-radius: 1.5rem !important;
 }
 
-.cert-header {
+.prog-header {
     background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 60%, #8b5cf6 100%);
     min-height: 200px;
 }
 
-.cert-pattern {
+.prog-pattern {
     position: absolute;
     inset: 0;
     background-image: repeating-linear-gradient(
@@ -243,6 +243,53 @@ a {
     border-radius: 0.75rem;
 }
 
+/* ── Media gallery ── */
+.gallery-item {
+    border-radius: 0.75rem !important;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.gallery-item:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18) !important;
+}
+
+.gallery-thumb {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+/* ── File icon box (manage page) ── */
+.file-icon-box {
+    width: 52px;
+    height: 52px;
+    background: #f3f4f6;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* ── Share URL input ── */
 .share-url {
     font-size: 0.85rem;
@@ -263,8 +310,11 @@ a {
     .auth-card .card-body {
         padding: 2rem 1.5rem !important;
     }
-    .cert-header {
+    .prog-header {
         min-height: 160px;
+    }
+    .gallery-thumb {
+        height: 110px;
     }
 }
 
@@ -277,3 +327,4 @@ a {
 .card, .hero-section h1, .hero-section p, .hero-section .btn {
     animation: fadeInUp 0.5s ease both;
 }
+

@@ -1,18 +1,26 @@
 # نظام ادارة الشواهد الذكي
-## Smart Certificate Management System
+## Smart Evidence Management System
 
-نظام ويب متكامل مبني بـ **PHP** و **Supabase** يتيح للمستخدمين إنشاء روابط احترافية لشواهدهم ومشاركتها بسهولة.
+نظام ويب متكامل مبني بـ **PHP** و **Supabase** يتيح رفع وإدارة ملفات الشواهد (صور، فيديوهات، ملفات) لأي برنامج أو فعالية، وإنشاء روابط مشاركة احترافية لعرضها.
+
+---
+
+## ما هو "الشاهد"؟
+
+الشاهد هو **ملف إثبات وتوثيق** (صورة، فيديو، أو ملف) يُرفق ببرنامج أو فعالية معينة ليُثبت تنفيذه.
 
 ---
 
 ## المميزات
 
 - 📋 **إنشاء حساب وتسجيل الدخول** عبر Supabase Auth
-- 🏅 **إنشاء روابط شواهد فريدة** لكل شهادة
-- 📎 **رفع ملفات الشهادات** (PDF / JPG / PNG / WEBP) إلى Supabase Storage
-- 🔗 **رابط عام قابل للمشاركة** لكل شهادة
-- 🗑️ **حذف الشواهد** من لوحة التحكم
-- 🌐 واجهة عربية كاملة (RTL) مبنية بـ Bootstrap 5
+- 📁 **إنشاء برامج / فعاليات** وتنظيم الشواهد تحتها
+- 📸 **رفع الصور** (JPG / PNG / WEBP / GIF – حتى 20MB)
+- 🎬 **رفع الفيديوهات** (MP4 / WEBM / MOV / AVI – حتى 200MB)
+- 📄 **رفع ملفات PDF** (حتى 20MB)
+- 🔗 **رابط مشاركة عام** لكل برنامج يعرض معرض الشواهد
+- 🗑️ **حذف الملفات والبرامج** من لوحة التحكم
+- 🌐 واجهة عربية RTL مبنية بـ Bootstrap 5
 
 ---
 
@@ -24,14 +32,16 @@ shahdi/
 ├── register.php               # إنشاء حساب
 ├── login.php                  # تسجيل الدخول
 ├── logout.php                 # تسجيل الخروج
-├── dashboard.php              # لوحة التحكم
-├── create-certificate.php     # إنشاء شهادة جديدة
-├── certificate.php            # عرض شهادة (رابط عام)
-├── delete-certificate.php     # حذف شهادة
+├── dashboard.php              # لوحة التحكم (قائمة البرامج)
+├── create-program.php         # إنشاء برنامج / فعالية جديدة
+├── manage-program.php         # رفع وإدارة ملفات الشواهد
+├── program.php                # عرض شواهد البرنامج (رابط عام)
+├── delete-program.php         # حذف برنامج
+├── delete-evidence.php        # حذف ملف شاهد واحد
 ├── config/
 │   └── supabase.php           # إعدادات Supabase + Helper Class
 ├── includes/
-│   ├── header.php             # رأس الصفحة (Navbar)
+│   ├── header.php             # رأس الصفحة
 │   └── footer.php             # تذييل الصفحة
 ├── assets/
 │   ├── css/style.css          # الأنماط المخصصة
@@ -56,11 +66,11 @@ shahdi/
 ### 3. إنشاء Storage Bucket
 
 1. اذهب إلى **Storage** → **New Bucket**.
-2. أنشئ Bucket باسم `certificates` واجعله **Public**.
+2. أنشئ Bucket باسم `evidence` واجعله **Public**.
 
 ### 4. إعداد متغيرات البيئة
 
-أنشئ ملف `.env` أو عدّل `config/supabase.php` مباشرة (لأغراض التطوير فقط):
+عدّل القيم في `config/supabase.php` (لأغراض التطوير):
 
 ```php
 define('SUPABASE_URL',      'https://xxxx.supabase.co');
@@ -77,20 +87,28 @@ php -S localhost:8000
 
 ---
 
+## مخطط قاعدة البيانات
+
+| الجدول | الأعمدة الرئيسية |
+|--------|-----------------|
+| `programs` | id, user_id, program_name, description, organization, slug, created_at |
+| `evidence_files` | id, program_id, file_name, file_url, file_type, file_size, created_at |
+
+---
+
 ## متطلبات الخادم
 
-| المتطلب  | الإصدار |
-|----------|---------|
-| PHP      | 8.0+    |
-| cURL     | مفعّل  |
-| fileinfo | مفعّل  |
+| المتطلب | الإصدار |
+|---------|---------|
+| PHP     | 8.0+   |
+| cURL    | مفعّل  |
+| fileinfo | مفعّل |
 
 ---
 
 ## الأمان
 
-- يتم التحقق من صحة المدخلات على جهة الخادم.
-- تحقق من نوع الملف بـ `finfo` (وليس الامتداد فقط).
-- Row Level Security مفعّل على Supabase.
-- لا يتم تخزين كلمات المرور محلياً – كل المصادقة عبر Supabase Auth.
-- يجب **عدم** تضمين المفاتيح السرية في الكود المصدري.
+- التحقق من نوع الملف بـ `finfo` (ليس الامتداد فقط).
+- Row Level Security مفعّل على Supabase (المستخدم يرى برامجه فقط).
+- الرابط العام يعتمد على slug عشوائي (16 حرفاً hex) كآلية وصول.
+- لا تُخزَّن كلمات المرور محلياً – المصادقة الكاملة عبر Supabase Auth.

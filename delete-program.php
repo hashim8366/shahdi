@@ -1,6 +1,7 @@
 <?php
 /**
- * Delete Certificate – نظام ادارة الشواهد الذكي
+ * Delete Program – نظام ادارة الشواهد الذكي
+ * Deletes a program (and all its evidence_files via ON DELETE CASCADE).
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -16,16 +17,16 @@ if (empty($id) || empty($userId)) {
     exit;
 }
 
-// Only allow deleting certificates that belong to the current user
 $sb  = supabase();
-$res = $sb->delete('certificates', [
+$res = $sb->delete('programs', [
     'id'      => "eq.{$id}",
     'user_id' => "eq.{$userId}",
 ]);
 
 $_SESSION['flash'] = (isset($res['_http_code']) && $res['_http_code'] >= 200 && $res['_http_code'] < 300)
-    ? 'تم حذف الشهادة بنجاح.'
+    ? 'تم حذف البرنامج وجميع شواهده بنجاح.'
     : 'حدث خطأ أثناء الحذف.';
 
 header('Location: /dashboard.php');
 exit;
+

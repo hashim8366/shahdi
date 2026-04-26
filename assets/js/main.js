@@ -14,14 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const original = btn.innerHTML;
                 btn.innerHTML  = '<i class="fa-solid fa-check me-1"></i>تم النسخ!';
                 btn.classList.add('btn-success');
-                btn.classList.remove('btn-primary', 'btn-outline-secondary');
+                btn.classList.remove('btn-primary', 'btn-outline-secondary', 'btn-outline-primary');
                 setTimeout(() => {
                     btn.innerHTML = original;
                     btn.classList.remove('btn-success');
-                    btn.classList.add('btn-primary');
+                    btn.classList.add(btn.dataset.origClass ?? 'btn-primary');
                 }, 2000);
             }).catch(() => {
-                // Fallback for older browsers
                 if (urlInput) {
                     urlInput.select();
                     document.execCommand('copy');
@@ -47,15 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Confirm delete ────────────────────────────────────────────────────────
     document.querySelectorAll('.confirm-delete').forEach(link => {
         link.addEventListener('click', e => {
-            if (!confirm('هل أنت متأكد من حذف هذه الشهادة؟ لا يمكن التراجع.')) {
+            if (!confirm('هل أنت متأكد من الحذف؟ لا يمكن التراجع.')) {
                 e.preventDefault();
             }
         });
     });
 
-    // ── File upload drag & drop ───────────────────────────────────────────────
+    // ── File upload drag & drop (supports multiple files) ────────────────────
     const uploadArea        = document.getElementById('uploadArea');
-    const fileInput         = document.getElementById('certificate_file');
+    const fileInput         = document.getElementById('evidence_files');
     const uploadPlaceholder = document.getElementById('uploadPlaceholder');
     const uploadPreview     = document.getElementById('uploadPreview');
     const uploadFileName    = document.getElementById('uploadFileName');
@@ -63,14 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (uploadArea && fileInput) {
 
-        // Click on area opens file picker
         uploadArea.addEventListener('click', e => {
             if (!e.target.closest('button')) {
                 fileInput.click();
             }
         });
 
-        // Drag events
         uploadArea.addEventListener('dragover', e => {
             e.preventDefault();
             uploadArea.classList.add('dragover');
@@ -83,18 +80,16 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadArea.classList.remove('dragover');
             if (e.dataTransfer.files.length) {
                 fileInput.files = e.dataTransfer.files;
-                showPreview(e.dataTransfer.files[0]);
+                showPreview(e.dataTransfer.files);
             }
         });
 
-        // File input change
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length) {
-                showPreview(fileInput.files[0]);
+                showPreview(fileInput.files);
             }
         });
 
-        // Remove file
         if (removeFileBtn) {
             removeFileBtn.addEventListener('click', e => {
                 e.stopPropagation();
@@ -104,11 +99,39 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        function showPreview(file) {
-            if (uploadFileName) uploadFileName.textContent = file.name;
+        function showPreview(files) {
+            const count = files.length;
+            if (uploadFileName) {
+                uploadFileName.textContent = count === 1
+                    ? files[0].name
+                    : `${count} ملف(ات) محددة`;
+            }
             uploadPlaceholder.classList.add('d-none');
             uploadPreview.classList.remove('d-none');
         }
+    }
+
+    // ── Image lightbox ────────────────────────────────────────────────────────
+    const lightboxModal    = document.getElementById('lightboxModal');
+    const lightboxImg      = document.getElementById('lightboxImg');
+    const lightboxTitle    = document.getElementById('lightboxTitle');
+    const lightboxDownload = document.getElementById('lightboxDownload');
+
+    if (lightboxModal) {
+        document.querySelectorAll('.gallery-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const src  = item.dataset.src  ?? '';
+                const name = item.dataset.name ?? '';
+                if (lightboxImg)      lightboxImg.src         = src;
+                if (lightboxTitle)    lightboxTitle.textContent = name;
+                if (lightboxDownload) {
+                    lightboxDownload.href     = src;
+                    lightboxDownload.download = name;
+                }
+                const modal = window.bootstrap?.Modal?.getOrCreateInstance(lightboxModal);
+                modal?.show();
+            });
+        });
     }
 
     // ── Auto-dismiss flash alerts ─────────────────────────────────────────────

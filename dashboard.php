@@ -10,18 +10,16 @@ $sb       = supabase();
 $userId   = $_SESSION['user_id']   ?? '';
 $userName = $_SESSION['user_name'] ?? 'المستخدم';
 
-// ── Fetch user's certificates ─────────────────────────────────────────────────
-$certs = [];
+// ── Fetch user's programs with evidence file count ─────────────────────────
+$programs = [];
 if ($userId) {
     $res = $sb->select(
-        'certificates',
-        'id,program_name,holder_name,organization,created_at,slug',
+        'programs',
+        'id,program_name,organization,created_at,slug,evidence_files(id)',
         ['user_id' => "eq.{$userId}", 'order' => 'created_at.desc']
     );
-    // Supabase returns an array of rows (or an error object)
-    if (isset($res[0]) || (is_array($res) && !isset($res['error']))) {
-        // Filter out internal _http_code key
-        $certs = array_filter($res, fn($v) => is_array($v));
+    if (is_array($res)) {
+        $programs = array_filter($res, fn($v) => is_array($v) && isset($v['id']));
     }
 }
 
@@ -40,11 +38,11 @@ unset($_SESSION['flash']);
                     <i class="fa-solid fa-hand-wave text-warning me-2"></i>
                     مرحباً، <?= htmlspecialchars($userName) ?>!
                 </h4>
-                <p class="text-muted mb-0">إدارة شواهدك في مكان واحد</p>
+                <p class="text-muted mb-0">إدارة شواهد برامجك وفعالياتك</p>
             </div>
-            <a href="/create-certificate.php"
+            <a href="/create-program.php"
                class="btn btn-primary btn-lg px-4 shadow-sm fw-bold create-btn">
-                <i class="fa-solid fa-plus me-2"></i>أنشئ رابط شاهد جديد
+                <i class="fa-solid fa-plus me-2"></i>برنامج / فعالية جديدة
             </a>
         </div>
     </div>
@@ -63,32 +61,49 @@ unset($_SESSION['flash']);
         <div class="col-sm-6 col-md-3">
             <div class="stat-card card border-0 shadow-sm p-3 text-center">
                 <div class="stat-icon mb-2">
-                    <i class="fa-solid fa-certificate fa-2x text-primary"></i>
+                    <i class="fa-solid fa-folder-open fa-2x text-primary"></i>
                 </div>
-                <h3 class="fw-bold mb-0"><?= count($certs) ?></h3>
-                <p class="text-muted small mb-0">إجمالي الشواهد</p>
+                <h3 class="fw-bold mb-0"><?= count($programs) ?></h3>
+                <p class="text-muted small mb-0">إجمالي البرامج</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="stat-card card border-0 shadow-sm p-3 text-center">
+                <div class="stat-icon mb-2">
+                    <i class="fa-solid fa-photo-film fa-2x text-success"></i>
+                </div>
+                <?php
+                    $totalFiles = 0;
+                    foreach ($programs as $p) {
+                        $totalFiles += is_array($p['evidence_files'] ?? null)
+                            ? count($p['evidence_files'])
+                            : 0;
+                    }
+                ?>
+                <h3 class="fw-bold mb-0"><?= $totalFiles ?></h3>
+                <p class="text-muted small mb-0">إجمالي ملفات الشواهد</p>
             </div>
         </div>
     </div>
 
-    <!-- Certificates table -->
+    <!-- Programs table -->
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
             <h5 class="fw-bold mb-0">
-                <i class="fa-solid fa-list-check text-primary me-2"></i>شواهدي
+                <i class="fa-solid fa-list-check text-primary me-2"></i>برامجي وفعالياتي
             </h5>
-            <a href="/create-certificate.php" class="btn btn-sm btn-primary">
+            <a href="/create-program.php" class="btn btn-sm btn-primary">
                 <i class="fa-solid fa-plus me-1"></i>جديد
             </a>
         </div>
         <div class="card-body p-0">
-            <?php if (empty($certs)): ?>
+            <?php if (empty($programs)): ?>
                 <div class="text-center py-5">
-                    <i class="fa-solid fa-inbox fa-4x text-muted mb-3 d-block"></i>
-                    <h6 class="text-muted">لا توجد شواهد بعد</h6>
-                    <p class="text-muted small">اضغط على "أنشئ رابط شاهد جديد" للبدء</p>
-                    <a href="/create-certificate.php" class="btn btn-primary mt-2">
-                        <i class="fa-solid fa-plus me-2"></i>أنشئ أول شهادة
+                    <i class="fa-solid fa-folder-open fa-4x text-muted mb-3 d-block"></i>
+                    <h6 class="text-muted">لا توجد برامج بعد</h6>
+                    <p class="text-muted small">اضغط على "برنامج / فعالية جديدة" للبدء</p>
+                    <a href="/create-program.php" class="btn btn-primary mt-2">
+                        <i class="fa-solid fa-plus me-2"></i>أنشئ أول برنامج
                     </a>
                 </div>
             <?php else: ?>
@@ -98,33 +113,41 @@ unset($_SESSION['flash']);
                             <tr>
                                 <th>#</th>
                                 <th>اسم البرنامج</th>
-                                <th>اسم الحاصل</th>
                                 <th>الجهة المنفذة</th>
+                                <th>الشواهد</th>
                                 <th>التاريخ</th>
-                                <th>الرابط</th>
+                                <th>رابط المشاركة</th>
                                 <th>إجراءات</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php $i = 1; foreach ($certs as $cert): ?>
-                                <?php if (!isset($cert['id'])) continue; ?>
+                            <?php $i = 1; foreach ($programs as $prog): ?>
+                                <?php if (!isset($prog['id'])) continue; ?>
+                                <?php
+                                    $slug      = $prog['slug'] ?? '';
+                                    $fileCount = is_array($prog['evidence_files'] ?? null)
+                                        ? count($prog['evidence_files'])
+                                        : 0;
+                                    $shareUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http')
+                                        . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')
+                                        . '/program.php?slug=' . urlencode($slug);
+                                ?>
                                 <tr>
                                     <td class="text-muted"><?= $i++ ?></td>
-                                    <td class="fw-semibold"><?= htmlspecialchars($cert['program_name'] ?? '') ?></td>
-                                    <td><?= htmlspecialchars($cert['holder_name'] ?? '') ?></td>
-                                    <td><?= htmlspecialchars($cert['organization'] ?? '') ?></td>
+                                    <td class="fw-semibold"><?= htmlspecialchars($prog['program_name'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars($prog['organization'] ?? '') ?></td>
+                                    <td>
+                                        <span class="badge bg-primary rounded-pill">
+                                            <i class="fa-solid fa-photo-film me-1"></i><?= $fileCount ?>
+                                        </span>
+                                    </td>
                                     <td class="text-muted small">
-                                        <?= isset($cert['created_at'])
-                                            ? date('Y/m/d', strtotime($cert['created_at']))
+                                        <?= isset($prog['created_at'])
+                                            ? date('Y/m/d', strtotime($prog['created_at']))
                                             : '' ?>
                                     </td>
                                     <td>
-                                        <?php $slug = $cert['slug'] ?? ''; ?>
-                                        <?php if ($slug):
-                                            $shareUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http')
-                                                . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')
-                                                . '/certificate.php?slug=' . urlencode($slug);
-                                        ?>
+                                        <?php if ($slug): ?>
                                             <div class="input-group input-group-sm" style="min-width:220px">
                                                 <input type="text" class="form-control share-url"
                                                        value="<?= htmlspecialchars($shareUrl) ?>"
@@ -137,12 +160,17 @@ unset($_SESSION['flash']);
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <a href="/certificate.php?slug=<?= urlencode($cert['slug'] ?? '') ?>"
-                                           class="btn btn-sm btn-outline-primary" target="_blank"
-                                           title="عرض الشهادة">
+                                        <a href="/manage-program.php?id=<?= urlencode($prog['id']) ?>"
+                                           class="btn btn-sm btn-outline-success"
+                                           title="إدارة الشواهد">
+                                            <i class="fa-solid fa-folder-plus"></i>
+                                        </a>
+                                        <a href="/program.php?slug=<?= urlencode($slug) ?>"
+                                           class="btn btn-sm btn-outline-primary ms-1" target="_blank"
+                                           title="عرض الشواهد">
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
-                                        <a href="/delete-certificate.php?id=<?= urlencode($cert['id']) ?>"
+                                        <a href="/delete-program.php?id=<?= urlencode($prog['id']) ?>"
                                            class="btn btn-sm btn-outline-danger ms-1 confirm-delete"
                                            title="حذف">
                                             <i class="fa-solid fa-trash"></i>
@@ -159,3 +187,4 @@ unset($_SESSION['flash']);
 </div>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
+
